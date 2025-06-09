@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Support Ticket Classifier</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f4f8;
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .container {
+      background: white;
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      gap: 30px;
+      box-sizing: border-box;
+      min-height: 520px;
+    }
+    .left-panel, .right-panel {
+      display: flex;
+      flex-direction: column;
+    }
+    .left-panel {
+      flex: 1;
+    }
+    .right-panel {
+      width: 320px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      padding: 20px;
+      overflow-y: auto;
+      max-height: 520px;
+    }
+    h1, h2 {
+      margin: 0 0 20px 0;
+      color: #333;
+      text-align: center;
+    }
+    textarea {
+      width: 100%;
+      height: 120px;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      resize: vertical;
+      font-size: 16px;
+      font-family: inherit;
+      box-sizing: border-box;
+      transition: border-color 0.3s;
+      min-height: 120px;
+    }
+    textarea:focus {
+      border-color: #3b82f6;
+      outline: none;
+      box-shadow: 0 0 6px #3b82f6aa;
+    }
+    button {
+      margin-top: 15px;
+      width: 100%;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 14px;
+      font-size: 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #2563eb;
+    }
+    .class-list {
+      margin-top: 15px;
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .class-box {
+      flex: 1 1 calc(50% - 10px);
+      padding: 12px 8px;
+      text-align: center;
+      border-radius: 8px;
+      background: #e0e7ff;
+      color: #3730a3;
+      font-weight: 600;
+      cursor: default;
+      user-select: none;
+      transition: background-color 0.3s, color 0.3s;
+      box-shadow: 0 2px 5px rgba(55, 48, 163, 0.2);
+      min-width: 140px;
+    }
+    .class-box.highlight {
+      background-color: green;
+      color: white;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.6);
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: 600;
+      text-align: center;
+      color: #111827;
+      min-height: 40px;
+      min-width: 200px;
+    }
+    .error {
+      color: #dc2626;
+      font-weight: 600;
+    }
+
+    /* History styles */
+    .history {
+      font-size: 16px;
+      color: #444;
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 15px;
+      max-height: 420px;
+    }
+    .history-item {
+      background: #f9fafb;
+      border-radius: 12px;
+      padding: 15px 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      animation: fadeIn 0.5s forwards;
+      border-left: 6px solid transparent;
+      word-break: break-word;
+    }
+    .history-item strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+    .history-item .message {
+      color: #2563eb;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .history-item .prediction {
+      font-weight: 700;
+      color: #22c55e; /* nice green */
+      padding-left: 6px;
+    }
+
+    /* Add colored left border for predicted class */
+    .history-item.bank-account {
+      border-left-color: #2563eb; /* blue */
+    }
+    .history-item.credit-card {
+      border-left-color: #ef4444; /* red */
+    }
+    .history-item.others {
+      border-left-color: #6b7280; /* gray */
+    }
+    .history-item.theft {
+      border-left-color: #d97706; /* amber */
+    }
+    .history-item.mortgage {
+      border-left-color: #10b981; /* teal */
+    }
+
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+      }
+    }
+
+    /* Responsive styling */
+    @media (max-width: 900px) {
+      .container {
+        flex-direction: column;
+        padding: 20px;
+        max-width: 100%;
+        min-height: auto;
+        height: auto;
+      }
+      .right-panel {
+        width: 100%;
+        max-height: 240px;
+        margin-top: 25px;
+        padding: 15px 20px;
+      }
+      .history {
+        max-height: 200px;
+      }
+      button {
+        font-size: 16px;
+        padding: 12px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .class-box {
+        flex: 1 1 100%;
+        min-width: auto;
+      }
+      textarea {
+        font-size: 14px;
+      }
+      button {
+        font-size: 16px;
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container" role="main" aria-label="Support Ticket Classifier">
+    <div class="left-panel">
+      <h1>Support Ticket Classifier</h1>
+      <textarea id="messageInput" aria-label="Support message input" placeholder="Type your support message here..."></textarea>
+
+      <!-- 5 Class Boxes -->
+      <div id="classList" class="class-list" role="list" aria-label="Classification categories"></div>
+
+      <button id="classifyBtn" aria-live="polite" aria-atomic="true">Classify Message</button>
+      <div id="result" class="result" aria-live="polite" aria-atomic="true"></div>
+    </div>
+
+    <div class="right-panel" aria-label="Classification history" tabindex="0">
+      <h2>History</h2>
+      <div id="history" class="history"></div>
+    </div>
+  </div>
+
+  <script>
+    const classes = [
+      'Bank Account services',
+      'Credit card or prepaid card',
+      'Others',
+      'Theft/Dispute Reporting',
+      'Mortgage/Loan'
+    ];
+
+    const classifyBtn = document.getElementById('classifyBtn');
+    const messageInput = document.getElementById('messageInput');
+    const resultDiv = document.getElementById('result');
+    const historyDiv = document.getElementById('history');
+    const classListDiv = document.getElementById('classList');
+
+    const classCssMap = {
+      'Bank Account services': 'bank-account',
+      'Credit card or prepaid card': 'credit-card',
+      'Others': 'others',
+      'Theft/Dispute Reporting': 'theft',
+      'Mortgage/Loan': 'mortgage'
+    };
+
+    function renderClassList(highlightClass = null) {
+      classListDiv.innerHTML = '';
+      classes.forEach(cls => {
+        const div = document.createElement('div');
+        div.className = 'class-box';
+        if (cls === highlightClass) {
+          div.classList.add('highlight');
+        }
+        div.textContent = cls;
+        classListDiv.appendChild(div);
+      });
+    }
+
+    renderClassList();
+
+    classifyBtn.addEventListener('click', () => {
+      const message = messageInput.value.trim();
+      if (!message) {
+        resultDiv.innerHTML = '<span class="error">Please enter a message to classify.</span>';
+        renderClassList();
+        return;
+      }
+
+      resultDiv.textContent = 'Classifying...';
+      classifyBtn.disabled = true;
+      classifyBtn.style.backgroundColor = '#2563eb';
+
+      fetch('https://customersupportticketclassifier.onrender.com/predict', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ text: message })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.error) {
+          resultDiv.innerHTML = `<span class="error">Error: ${data.error}</span>`;
+          renderClassList();
+        } else {
+          resultDiv.textContent = `Prediction: ${data.prediction}`;
+          renderClassList(data.prediction);
+          addHistoryItem(message, data.prediction);
+          messageInput.value = '';
+        }
+      })
+      .catch(err => {
+        resultDiv.innerHTML = `<span class="error">Network error: ${err.message}</span>`;
+        renderClassList();
+      })
+      .finally(() => {
+        setTimeout(() => {
+          renderClassList();
+          resultDiv.textContent = '';
+          classifyBtn.disabled = false;
+          classifyBtn.style.backgroundColor = '#3b82f6';
+        }, 1100);
+      });
+    });
+
+    function addHistoryItem(message, prediction) {
+      const div = document.createElement('div');
+      div.className = 'history-item ' + (classCssMap[prediction] || '');
+      div.innerHTML = `
+        <span class="message"><strong>Message:</strong> ${escapeHtml(message)}</span>
+        <span><strong>Prediction:</strong> <span class="prediction">${escapeHtml(prediction)}</span></span>
+      `;
+      historyDiv.prepend(div);
+    }
+
+    function escapeHtml(text) {
+      return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+  </script>
+
+</body>
+</html>
